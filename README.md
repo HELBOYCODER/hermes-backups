@@ -3,9 +3,9 @@
 Automated daily backups of Hermes server configurations.
 
 ## Latest Backup
-- Date: 2026-08-06_03-00
-- File: hermes-backup-2026-08-06_03-00.tar.gz
-- Size: 3.2M
+- Date: 2026-08-07_03-00
+- File: hermes-backup-2026-08-07_03-00.tar.gz
+- Size: 3.3M
 
 ## Contents
 - Hermes Agent (config + skills)
@@ -17,5 +17,5 @@ Automated daily backups of Hermes server configurations.
 ## Restore
 ```bash
 cd /root/backups
-tar -xzf hermes-backup-2026-08-06_03-00.tar.gz
+tar -xzf hermes-backup-2026-08-07_03-00.tar.gz
 ```
