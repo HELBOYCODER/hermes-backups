@@ -1,20 +1,23 @@
-# Hermes Server Backups
+# بکاپ‌های سرور Hermes
 
-Automated daily backups of Hermes server configurations.
+بکاپ‌های خودکارِ روزانه از کانفیگ‌های سرور Hermes.
 
-## Latest Backup
-- Date: 2026-08-07_03-00
-- File: hermes-backup-2026-08-07_03-00.tar.gz
-- Size: 3.3M
+## 🕒 آخرین بکاپ
 
-## Contents
-- Hermes Agent (config + skills)
-- V2RayDAR settings
-- HaveAll bot config
-- SearXNG settings
-- Systemd services
+- تاریخ: `2026-08-07_03-00`
+- فایل: `hermes-backup-2026-08-07_03-00.tar.gz`
+- حجم: ۳٫۳ مگابایت
 
-## Restore
+## 📦 محتوا
+
+- Hermes Agent (کانفیگ + مهارت‌ها)
+- تنظیمات V2RayDAR
+- کانفیگ ربات HaveAll
+- تنظیمات SearXNG
+- سرویس‌های systemd
+
+## 🔄 بازگردانی (Restore)
+
 ```bash
 cd /root/backups
 tar -xzf hermes-backup-2026-08-07_03-00.tar.gz
