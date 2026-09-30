@@ -1,0 +1,31 @@
+{
+  "generated": "2026-10-01T01:05:41.456141",
+  "agent": "MEOW/ersaz hybrid — Hermes Agent (Nous Research), Telegram DM erfan torabi (chat 8874504954)",
+  "restore_steps": [
+    "1. apt install docker.io; sudo modprobe binder_linux devices='binder,hwbinder,vndbinder'; sudo mkdir -p /dev/binderfs && sudo mount -t binder binder /dev/binderfs",
+    "2. sudo docker run -itd --privileged -v ~/redroid-data:/data -p 5555:5555 --name hg-test redroid/redroid:14.0.0_64only-latest androidboot.redroid_gpu_mode=guest",
+    "3. Android SDK: /home/agentuser/android-sdk (cmdline-tools; sdkmanager platform-tools emulator 'platforms;android-34' 'system-images;android-34;google_apis;x86_64'); JDK17 at ~/jdk (Temurin from api.adoptium.net); export JAVA_HOME=~/jdk",
+    "4. MCP servers in config.yaml: deepwiki, context7, git, fetch, nettools+wireshark (PyPI ones NEED: uvx --with 'mcp<2'); NEVER use --connect-timeout flag; feed prompts with: yes | hermes mcp add ...",
+    "5. pip: firecrawl-anydoc (import anydoc); github CLI not installed; stgit at /tmp/stgit-root/usr/bin (rebuild: see below)",
+    "6. Hellgram repo: clone github.com/HELBOYCODER/Hellgram; skills/Hellgram-meta has patches+series+scripts+FEATURES; bun scripts/setup.ts rebuilds worktree; commit as HELBOYCODER via temp askpass (GH_TOKEN env, script: #!/bin/sh\\necho \"$GH_TOKEN\"); CI regenerates worktree from patches — edit worktree then scripts/export.ts",
+    "7. copy memories/ + skills/ + config.yaml back into ~/.hermes/"
+  ],
+  "tools_installed": [
+    "docker+redroid(andro14, no-KVM emulator)",
+    "adb+emulator sdk at android-sdk",
+    "Temurin JDK17 ~/jdk",
+    "anydoc (firecrawl-anydoc pypi)",
+    "6 MCP servers",
+    "stgit (in /tmp/stgit-root — rebuild from git://git.kernel.org/pub/scm/git/stgit.git or apt stgit)",
+    "bun via npx -y bun"
+  ],
+  "prechecks": [
+    "entinychecker.ts",
+    "check-translations.ts",
+    "lint-patches.ts"
+  ],
+  "session_anchors": [
+    "Hellgram test-17 verified visually: splash white bg, login E2E works, no hang",
+    "battery INT32_MIN toast bug discovered (cosmetic, emulator-only)"
+  ]
+}

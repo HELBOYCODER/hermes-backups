@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "skills": {
+    "find-skill-skillhub": {
+      "name": "find skill",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=find-skill-skillhub",
+      "source": "community",
+      "version": "1.0.2",
+      "installedAt": "2026-09-23T17:21:35Z"
+    },
+    "requirements-analysis": {
+      "name": "requirements-analysis",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=requirements-analysis",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T18:56:02Z"
+    },
+    "software-manager-skill": {
+      "name": "Software Manager Skill",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=software-manager-skill",
+      "source": "community",
+      "version": "2.2.0",
+      "installedAt": "2026-09-29T18:56:07Z"
+    },
+    "prd": {
+      "name": "Prd",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=prd",
+      "source": "community",
+      "version": "2.0.4",
+      "installedAt": "2026-09-29T18:56:13Z"
+    },
+    "prd-writer-pro": {
+      "name": "PRD文档撰写助手Pro",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=prd-writer-pro",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T18:56:17Z"
+    },
+    "prd-to-design-doc": {
+      "name": "产品prd转设计文档",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=prd-to-design-doc",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T18:56:20Z"
+    },
+    "prd-reviewer": {
+      "name": "Prd Reviewer",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=prd-reviewer",
+      "source": "community",
+      "version": "1.0.2",
+      "installedAt": "2026-09-29T18:56:24Z"
+    },
+    "superpowers-tdd": {
+      "name": "Superpowers Tdd",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=superpowers-tdd",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T18:59:23Z"
+    },
+    "test-case-generator": {
+      "name": "Test Case Generator",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=test-case-generator",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T18:59:27Z"
+    },
+    "test-patterns": {
+      "name": "Test Patterns",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=test-patterns",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T18:59:29Z"
+    },
+    "e2e-testing-patterns": {
+      "name": "E2E Testing Patterns",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=e2e-testing-patterns",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T18:59:34Z"
+    },
+    "api-test-automation": {
+      "name": "Api Test Automation",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=api-test-automation",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T18:59:38Z"
+    },
+    "afrexai-qa-test-plan": {
+      "name": "QA Test Plan Generator",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=afrexai-qa-test-plan",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T18:59:42Z"
+    },
+    "ai-video-clipper": {
+      "name": "AI视频剪辑Skill",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=ai-video-clipper",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T19:00:02Z"
+    },
+    "video-clip-assistant": {
+      "name": "视频自动剪辑助手",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=video-clip-assistant",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T19:00:06Z"
+    },
+    "ffmpeg-video-editor": {
+      "name": "ffmpeg-video-editor",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=ffmpeg-video-editor",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T19:00:11Z"
+    },
+    "video-editor": {
+      "name": "Video Editor",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=video-editor",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T19:00:13Z"
+    },
+    "ai-agentic-video-editor": {
+      "name": "Ai Agentic Video Editor",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=ai-agentic-video-editor",
+      "source": "community",
+      "version": "1.0.21",
+      "installedAt": "2026-09-29T19:00:17Z"
+    },
+    "remotion-video-toolkit": {
+      "name": "Remotion Video Toolkit",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=remotion-video-toolkit",
+      "source": "community",
+      "version": "1.4.0",
+      "installedAt": "2026-09-29T19:00:22Z"
+    },
+    "ah-api-designer": {
+      "name": "api-designer",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=ah-api-designer",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T19:00:44Z"
+    },
+    "sovereign-api-docs-generator": {
+      "name": "API Documentation Generator",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=sovereign-api-docs-generator",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T19:00:47Z"
+    },
+    "api-dev": {
+      "name": "API Development",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=api-dev",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T19:00:50Z"
+    },
+    "api-doc-writer": {
+      "name": "API Doc Writer",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=api-doc-writer",
+      "source": "community",
+      "version": "1.0.1",
+      "installedAt": "2026-09-29T19:00:54Z"
+    },
+    "qa-api-tester": {
+      "name": "QA API Tester",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=qa-api-tester",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T19:00:57Z"
+    },
+    "afrexai-api-docs": {
+      "name": "API Documentation Generator",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=afrexai-api-docs",
+      "source": "community",
+      "version": "1.0.0",
+      "installedAt": "2026-09-29T19:01:00Z"
+    }
+  }
+}

@@ -1,0 +1,360 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Oleksii Kulinich <entaytion@gmail.com>
+Date: Tue, 1 Sep 2026 11:12:44 +0300
+Subject: Adjust build configuration (branding, versioning, dependency trimming for APK size)
+
+---
+ TMessagesProj/build.gradle                    | 43 +++++++++++++-----
+ TMessagesProj/proguard-rules.pro              | 17 ++++---
+ .../java/org/telegram/ui/LaunchActivity.java  | 21 ---------
+ TMessagesProj_App/build.gradle                | 38 +++++++++++++---
+ build.gradle                                  | 45 +++++++++++++++++--
+ 5 files changed, 117 insertions(+), 47 deletions(-)
+
+diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
+index 0000000..0000000 100644
+--- a/TMessagesProj/build.gradle
++++ b/TMessagesProj/build.gradle
+@@ -59,9 +59,8 @@ dependencies {
+ 
+     compileOnly 'org.checkerframework:checker-qual:2.5.2'
+     compileOnly 'org.checkerframework:checker-compat-qual:2.5.0'
++    compileOnly 'com.google.j2objc:j2objc-annotations:2.8'
+     implementation 'com.google.firebase:firebase-messaging:22.0.0'
+-    implementation 'com.google.firebase:firebase-datatransport:18.1.0'
+-    implementation 'com.google.firebase:firebase-appindexing:20.0.0'
+     implementation 'com.google.android.gms:play-services-maps:18.1.0'
+     implementation 'com.google.android.gms:play-services-auth:20.4.0'
+     implementation 'com.google.android.gms:play-services-vision:20.1.3'
+@@ -69,11 +68,25 @@ dependencies {
+     implementation 'com.google.android.gms:play-services-location:21.0.1'
+     implementation 'com.google.android.gms:play-services-wallet:19.1.0'
+     implementation 'com.googlecode.mp4parser:isoparser:1.0.6'
+-    implementation 'com.stripe:stripe-android:11.3.0'
++    implementation('com.stripe:stripe-android:11.3.0') {
++        exclude group: 'org.bouncycastle'
++    }
+     implementation 'com.google.mlkit:language-id:17.0.6'
+     implementation 'com.android.billingclient:billing:8.0.0'
+     implementation 'com.google.code.gson:gson:2.11.0'
+-    implementation 'com.google.guava:guava:31.1-android'
++    implementation('com.google.guava:guava:31.1-android') {
++        // NOT excluding jsr305 or error_prone_annotations: stock code imports
++        // javax.annotation.Nonnull/Nullable (exoplayer2, GroupCallMessage, WebInstantView,
++        // MusicBrowserService) and com.google.errorprone.annotations.InlineMe (63 files in
++        // exoplayer2) directly, not just transitively through Guava's internals - excluding
++        // either breaks compilation. checker-qual is separately compileOnly'd above, so it's
++        // safe to exclude Guava's own copy; j2objc/animal-sniffer/checker-compat-qual have
++        // zero direct imports in this codebase.
++        exclude group: 'com.google.j2objc', module: 'j2objc-annotations'
++        exclude group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations'
++        exclude group: 'org.checkerframework', module: 'checker-qual'
++        exclude group: 'org.checkerframework', module: 'checker-compat-qual'
++    }
+ 
+     implementation 'com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1'
+     implementation 'com.google.android.gms:play-services-mlkit-image-labeling:16.0.8'
+@@ -98,9 +111,8 @@ dependencies {
+     api project(':jlatexmath')
+ 
+     // inu
+-    if (!project.hasProperty("NOMAPS")) {
+-        implementation 'org.maplibre.gl:android-sdk:13.1.0'
+-    }
++    // pure-java osm renderer, no native libs (replaces maplibre, which cost ~12MB of .so per ABI)
++    implementation 'org.osmdroid:osmdroid-android:6.1.20'
+     // end inu
+ 
+ //    implementation 'com.google.mlkit:translate:17.0.3'
+@@ -123,9 +135,7 @@ android {
+     sourceSets.main.jniLibs.srcDirs = ['./jni/']
+ 
+     // inu
+-    if (!project.hasProperty("NOMAPS")) {
+-        sourceSets.main.java.srcDirs += 'src/main/kotlin-maps'
+-    }
++    sourceSets.main.java.srcDirs += 'src/main/kotlin-osmdroid'
+     // end inu
+ 
+     externalNativeBuild {
+@@ -155,7 +165,12 @@ android {
+         targetSdkVersion 36
+ 
+         ndk {
+-            abiFilters "arm64-v8a"
++            def filters = System.getenv('ABI_FILTERS')
++            if (filters == null || filters.isEmpty()) {
++                abiFilters "arm64-v8a"
++            } else if (filters != 'all') {
++                abiFilters filters.split(',') as String[]
++            }
+         }
+ 
+         externalNativeBuild {
+@@ -175,6 +190,7 @@ android {
+             jniDebuggable true
+             shrinkResources false
+             multiDexEnabled true
++            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../TMessagesProj/proguard-rules.pro', '../TMessagesProj/proguard-rules-beta.pro'
+             ndk.debugSymbolLevel = 'FULL'
+             buildConfigField "String", "BUILD_VERSION_STRING", "\"" + rootProject.ext.verName + "\""
+             buildConfigField "String", "BUILD_DATE", "\"" + rootProject.ext.buildDate + "\""
+@@ -187,6 +203,11 @@ android {
+ 
+         release {
+             jniDebuggable false
++            // Beta/prerelease CI builds now compile this same release buildType (see
++            // apk.yml/BuildVars.isBetaApp) but skip R8 minification -- testers read raw crash
++            // logs (CrashReporter/LogsHelper) and obfuscated class/method names make those
++            // useless without a saved mapping.txt, which defeats the point of a beta channel.
++            minifyEnabled System.getenv('INU_BUILD_TYPE') != 'beta'
+             shrinkResources false
+             multiDexEnabled true
+             ndk.debugSymbolLevel = 'FULL'
+diff --git a/TMessagesProj/proguard-rules.pro b/TMessagesProj/proguard-rules.pro
+index 0000000..0000000 100644
+--- a/TMessagesProj/proguard-rules.pro
++++ b/TMessagesProj/proguard-rules.pro
+@@ -1,4 +1,4 @@
+--keep public class com.google.android.gms.* { public *; }
++# Google Play Services: keep only annotated classes (KeepName) instead of wildcard keeping all gms classes
+ -keepnames @com.google.android.gms.common.annotation.KeepName class *
+ -keepclassmembernames class * {
+     @com.google.android.gms.common.annotation.KeepName *;
+@@ -8,6 +8,10 @@
+ -keep @androidx.annotation.Keep class * { *; }
+ -keepclasseswithmembers class * { @androidx.annotation.Keep *; }
+ 
++# NagramX R8 UI allowshrinking rules
++-keepclassmembernames,allowshrinking class org.telegram.ui.* { <fields>; }
++-keepclassmembernames,allowshrinking class org.telegram.ui.Cells.* { <fields>; }
++-keepclassmembernames,allowshrinking class org.telegram.ui.Components.* { <fields>; }
+ -keep class org.webrtc.* { *; }
+ -keep class org.webrtc.audio.* { *; }
+ -keep class org.webrtc.voiceengine.* { *; }
+@@ -15,7 +19,6 @@
+ -keep class org.telegram.messenger.camera.* { *; }
+ -keep class org.telegram.messenger.secretmedia.* { *; }
+ -keep class org.telegram.messenger.support.* { *; }
+--keep class org.telegram.messenger.support.* { *; }
+ -keep class org.telegram.messenger.time.* { *; }
+ -keep class org.telegram.messenger.video.* { *; }
+ -keep class org.telegram.messenger.voip.* { *; }
+@@ -52,18 +55,22 @@
+ -dontwarn org.scilab.forge.jlatexmath.**
+ 
+ # inu
+-# fixes for some libs
+ -dontwarn java.awt.**
+ -dontwarn javax.imageio.**
+ -dontwarn com.googlecode.mp4parser.authoring.tracks.mjpeg.**
+ -dontwarn javax.naming.**
+ -dontwarn org.bouncycastle.cert.**
+ -dontwarn org.bouncycastle.openssl.**
++-dontwarn org.bouncycastle.**
+ -dontwarn org.objectweb.asm.**
+ -dontwarn com.google.crypto.tink.**
++-dontwarn com.google.j2objc.annotations.**
++-dontwarn a.a.a.a.**
++-dontwarn com.stripe.android.stripe3ds2.**
++-dontwarn com.stripe.**
+ -keep class desu.inugram.** { *; }
+ # /inu
+ 
+ # Use -keep to explicitly keep any other classes shrinking would remove
+-#-dontoptimize
+-#-dontobfuscate
+\ No newline at end of file
++-dontoptimize
++-dontobfuscate
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 0000000..0000000 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -90,9 +90,6 @@ import androidx.core.view.ViewCompat;
+ 
+ import com.google.android.gms.common.api.Status;
+ import com.google.common.primitives.Longs;
+-import com.google.firebase.appindexing.Action;
+-import com.google.firebase.appindexing.FirebaseUserActions;
+-import com.google.firebase.appindexing.builders.AssistActionBuilder;
+ 
+ import org.telegram.PhoneFormat.PhoneFormat;
+ import org.telegram.messenger.AccountInstance;
+@@ -1942,15 +1939,6 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+ 
+                     final LinkManager linkManager = new LinkManager(this, intentAccount[0], progress, openedTelegram);
+                     if (linkManager.handle(data)) {
+-                        if (intent.hasExtra(EXTRA_ACTION_TOKEN)) {
+-                            final boolean success = true;
+-                            final Action assistAction = new AssistActionBuilder()
+-                                .setActionToken(intent.getStringExtra(EXTRA_ACTION_TOKEN))
+-                                .setActionStatus(success ? Action.Builder.STATUS_TYPE_COMPLETED : Action.Builder.STATUS_TYPE_FAILED)
+-                                .build();
+-                            FirebaseUserActions.getInstance(this).end(assistAction);
+-                            intent.removeExtra(EXTRA_ACTION_TOKEN);
+-                        }
+                         return true;
+                     }
+ 
+@@ -2859,15 +2847,6 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+                                 }
+                             }
+                         }
+-                        if (intent.hasExtra(EXTRA_ACTION_TOKEN)) {
+-                            final boolean success = UserConfig.getInstance(currentAccount).isClientActivated() && "tg".equals(scheme) && unsupportedUrl == null;
+-                            final Action assistAction = new AssistActionBuilder()
+-                                    .setActionToken(intent.getStringExtra(EXTRA_ACTION_TOKEN))
+-                                    .setActionStatus(success ? Action.Builder.STATUS_TYPE_COMPLETED : Action.Builder.STATUS_TYPE_FAILED)
+-                                    .build();
+-                            FirebaseUserActions.getInstance(this).end(assistAction);
+-                            intent.removeExtra(EXTRA_ACTION_TOKEN);
+-                        }
+                         if (code != null || UserConfig.getInstance(currentAccount).isClientActivated()) {
+                             if (phone != null || phoneHash != null) {
+                                 AlertDialog cancelDeleteProgressDialog = new AlertDialog(LaunchActivity.this, AlertDialog.ALERT_TYPE_SPINNER);
+diff --git a/TMessagesProj_App/build.gradle b/TMessagesProj_App/build.gradle
+index 0000000..0000000 100644
+--- a/TMessagesProj_App/build.gradle
++++ b/TMessagesProj_App/build.gradle
+@@ -25,15 +25,31 @@ dependencies {
+ android {
+     compileSdkVersion 36
+     buildToolsVersion '36.0.0'
++    ndkVersion "27.2.12479018"
+ 
+     defaultConfig.applicationId = "ua.entaytion.entinygram"
+ 
+-    sourceSets.main.jniLibs.srcDirs = ['../TMessagesProj/jni/']
++    externalNativeBuild {
++        cmake {
++            path '../TMessagesProj/jni/CMakeLists.txt'
++        }
++    }
+ 
+     packaging {
+         jniLibs {
+             useLegacyPackaging = true
+         }
++        resources {
++            excludes += [
++                'META-INF/*.kotlin_module',
++                'META-INF/*.version',
++                'META-INF/DEPENDENCIES',
++                'META-INF/LICENSE*',
++                'META-INF/NOTICE*',
++                'META-INF/AL2.0',
++                'META-INF/LGPL2.1'
++            ]
++        }
+     }
+ 
+     lintOptions {
+@@ -70,7 +86,7 @@ android {
+             minifyEnabled false
+             shrinkResources false
+             multiDexEnabled true
+-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../TMessagesProj/proguard-rules.pro'
++            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../TMessagesProj/proguard-rules.pro', '../TMessagesProj/proguard-rules-beta.pro'
+             ndk.debugSymbolLevel = 'FULL'
+         }
+ 
+@@ -78,11 +94,14 @@ android {
+             debuggable false
+             jniDebuggable false
+             signingConfig signingConfigs.release
+-            minifyEnabled true
+-            shrinkResources true
++            // Beta/prerelease CI builds compile this same buildType (see apk.yml) but skip R8
++            // minification/resource shrinking -- keeps crash logs (CrashReporter/LogsHelper)
++            // readable for testers instead of obfuscated class/method names.
++            minifyEnabled System.getenv('INU_BUILD_TYPE') != 'beta'
++            shrinkResources System.getenv('INU_BUILD_TYPE') != 'beta'
+             multiDexEnabled true
+-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../TMessagesProj/proguard-rules.pro'
+-            ndk.debugSymbolLevel = 'FULL'
++            proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro'
++            ndk.debugSymbolLevel = 'SYMBOL_TABLE'
+         }
+     }
+ 
+@@ -109,7 +128,12 @@ android {
+         ndkVersion "27.2.12479018"
+ 
+         ndk {
+-            abiFilters "arm64-v8a"
++            def filters = System.getenv('ABI_FILTERS')
++            if (filters == null || filters.isEmpty()) {
++                abiFilters "arm64-v8a"
++            } else if (filters != 'all') {
++                abiFilters filters.split(',') as String[]
++            }
+         }
+ 
+         externalNativeBuild {
+diff --git a/build.gradle b/build.gradle
+index 0000000..0000000 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -17,6 +17,13 @@ repositories {
+     google()
+ }
+ 
++// entiny: silence JDK 21+ "source/target 8 is obsolete" javac warnings; we stay on 8 like stock
++allprojects {
++    tasks.withType(JavaCompile).configureEach {
++        options.compilerArgs << "-Xlint:-options"
++    }
++}
++
+ // Strip JLatexMath fonts we don't ship (transitive AAR assets from
+ // io.noties.markwon:ext-latex -> ru.noties:jlatexmath-android, ~764 KB total under
+ // assets/org/scilab/forge/jlatexmath/fonts/). Has to live in the APK modules — a
+@@ -54,12 +61,44 @@ subprojects {
+     }
+ }
+ 
+-def commitId = System.getenv('COMMIT_ID')
++def getGitCommitSha = {
++    try {
++        def process = ['git', 'rev-parse', '--short', 'HEAD'].execute(null, rootDir)
++        process.waitFor()
++        if (process.exitValue() == 0) return process.text.trim()
++    } catch (Exception ignored) {}
++    return null
++}
++
++def getNextLocalBuildNumber = {
++    def file = new File(rootDir, '.local_build_number')
++    int current = 1000000
++    if (file.exists()) {
++        try {
++            current = file.text.trim().toInteger()
++        } catch (Exception ignored) {}
++    }
++    int next = current + 1
++    try {
++        file.text = next.toString()
++    } catch (Exception ignored) {}
++    return current
++}
++
++def commitId = System.getenv('COMMIT_ID') ?: getGitCommitSha()
++def currentVerCode = System.getenv('INU_BUILD') ? Integer.parseInt(System.getenv('INU_BUILD')) : getNextLocalBuildNumber()
+ 
+ ext {
+   verName = "${APP_VERSION_NAME}${commitId != null ? "-${commitId.take(7)}" : ''}"
+-  verCode = Integer.parseInt(System.getenv('INU_BUILD') ?: '1000000')
++  verCode = currentVerCode
+   stockVerCode = Integer.parseInt(APP_VERSION_CODE)
+   buildDate = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_DATE)
+-  ccachePath = ['sh', '-c', 'command -v ccache'].execute().text.trim() ?: null
++  ccachePath = null
++  try {
++    def found = ['sh', '-c', 'command -v ccache'].execute().text.trim()
++    if (found) ccachePath = found
++  } catch (IOException ignored) {
++    // no POSIX shell on PATH (e.g. Android Studio's Gradle daemon on Windows
++    // outside a git-bash/WSL terminal) -- ccache is just an optional speedup
++  }
+ }

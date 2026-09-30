@@ -1,0 +1,1 @@
+{"ts": "2026-09-29T19:20:01.419Z", "job_id": "13a4d9cd0e9e", "fire_id": "bd3da98306aa4af9b915b57542954efb", "prompt_tokens": 89873, "completion_tokens": 1141, "total_tokens": 91014, "response_silent": false, "deliver_target": "local", "model": "auto", "duration_ms": 392226, "error": null}
